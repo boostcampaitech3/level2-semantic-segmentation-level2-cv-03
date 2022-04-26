@@ -1,0 +1,17 @@
+architecture: deeplabv3_resnet50 # model name
+dataset: base # dataset name
+augmentation: [ ToTensorV2() ]
+epoch: 40
+batch_size: 16
+lr: .1e-3 # learninig rate / 0.0001
+optimizer: 
+  type: Adam # torch.optim 내 원하는 optimizer를 선언
+  weight_decay: .1e-5
+loss: cross_entropy # torch.optim.lr_scheduler 내 원하는 scheduler를 선언
+scheduler: 
+  type: MultiStepLR
+  args: 
+    - [30,38] # milestones
+    - 0.5 # gamma
+seed: 21
+exp_name: deeplabv3_resnet50_test # wandb projects 내 실험 name
