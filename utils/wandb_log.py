@@ -1,5 +1,7 @@
 import wandb
 
+cls_list = ['Backgroud', 'General trash', 'Paper', 'Paper pack', 'Metal', 'Glass', 'Plastic', 'Styrofoam', 'Plastic bag', 'Battery', 'Clothing']
+
 class Wandb:
     def __init__(self, project, flag, name, config):
         self.flag = flag
@@ -21,6 +23,10 @@ class Wandb:
                     'val_mIoU' : val_mIoU,
                 })
 
+    def write_class(self, IoU_by_class):
+        if self.flag:
+            log_dict = dict([ [cls_list[i], IoU_by_class[i][cls_list[i]] ] for i in range(11)])
+            wandb.log(log_dict)
 
     def write_lr(self, epoch, current_lr, val_loss, val_acc, f1):
         if self.flag:

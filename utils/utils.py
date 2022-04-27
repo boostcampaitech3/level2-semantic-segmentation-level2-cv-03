@@ -21,7 +21,7 @@ def save_model(model, saved_dir, epoch, best=False):
         output_path = os.path.join(saved_dir, f"best_mIoU.pt")
     else:    
         output_path = os.path.join(saved_dir, f"epoch_{epoch}.pt")
-    torch.save(model, output_path)
+    torch.save(model.state_dict(), output_path)
 
 def makedirs(path): 
     try:    

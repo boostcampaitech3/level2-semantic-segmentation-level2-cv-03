@@ -1,27 +1,31 @@
-exp_name: Deeplabv3_resnet50_30epoch # wandb projects 내 실험 name
+exp_name: experiment_name # wandb projects 내 실험 name
 
 dataset: base # dataset name
 seed: 21
+
+resumed: # 이어서 학습하고 싶을 때 flag를 True로 해주시고, 알맞는 path를 지정하시면 됩니다.
+  flag: False
+  path: ./saved/Deeplabv3_resnet50_40epoch_resumed/epoch_1.pt
 
 wandb:
   project: myeongu-segmentation # 본인 project명으로 바꿔주시면 됩니다.
   flag: True
 
 train:
-  num_epochs: 30
+  num_epochs: 40
 
   augmentation:
     name: BasicTransform
 
   train_data_loader:
-    batch_size: 16
+    batch_size: 24
     shuffle: True
     num_workers: 4
   val_data_loader:
     batch_size: 32
   
   model:
-    name: Deeplabv3_resnet50 # FCN_Resnet_50 # model 폴더 내 model.py의 class명 기준으로 적으시면 됩니다.
+    name: FCN_Resnet_50 # FCN_Resnet_50 # model 폴더 내 model.py의 class명 기준으로 적으시면 됩니다.
   
   loss: 
     name: cross_entropy # model 폴더 내 loss.py의 _criterion_entrypoints 키 기준으로 적으시면 됩니다.
@@ -36,8 +40,8 @@ train:
   lr_scheduler: # torch.optim.lr_scheduler에 맞게 선언해주시면 됩니다.
     type: MultiStepLR # torch.optim.lr_scheduler 내 원하는 scheduler를 선언
     args: 
-      milestones: [30,38] # milestones
-      gamma: 0.5 # gamma
+      milestones: [30,35] # milestones
+      gamma: 2 # gamma
 
 trainer:
   save_dir: './saved'

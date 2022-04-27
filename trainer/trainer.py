@@ -14,7 +14,7 @@ from dataset import CustomDataLoader
 from utils import * # wnadb 관련 함수
 
 
-def train(num_epochs, model, data_loader, val_loader, criterion, optimizer, saved_dir, val_every, device, scheduler, wandb):
+def train(num_epochs, model, data_loader, val_loader, criterion, optimizer, saved_dir, val_every, device, scheduler_type, scheduler, wandb):
     print(f'Start training..')
     n_class = 11
     best_loss = 9999999
@@ -36,7 +36,10 @@ def train(num_epochs, model, data_loader, val_loader, criterion, optimizer, save
             model = model.to(device)
             
             # inference
-            outputs = model(images)['out']
+            try:
+                outputs = model(images)['out']
+            except TypeError: # U-Net++ 경우
+                outputs = model(images)
             
             # loss 계산 (cross entropy loss)
             loss = criterion(outputs, masks)
@@ -55,12 +58,10 @@ def train(num_epochs, model, data_loader, val_loader, criterion, optimizer, save
                 print(f'Epoch [{epoch+1}/{num_epochs}], Step [{step+1}/{len(data_loader)}], \
                         Loss: {round(loss.item(),4)}, mIoU: {round(mIoU,4)}')
             wandb.write_train(mIoU, acc, loss)
-        
-        scheduler.step()
              
         # validation 주기에 따른 loss 출력 및 best model 저장
         if (epoch + 1) % val_every == 0:
-            val_mIoU, avrg_loss = validation(epoch + 1, model, val_loader, criterion, device)
+            val_mIoU, avrg_loss = validation(epoch + 1, model, val_loader, criterion, device, wandb)
             # if avrg_loss < best_loss:
             if val_mIoU > best_mIoU:
                 print(f"Best performance at epoch: {epoch + 1}")
@@ -71,10 +72,14 @@ def train(num_epochs, model, data_loader, val_loader, criterion, optimizer, save
             
             save_model(model, saved_dir, epoch+1)
             wandb.write_val(avrg_loss, val_mIoU)
+        if scheduler_type in ['ReduceLROnPlateau']:
+            scheduler.step(avrg_loss)
+        else:
+            scheduler.step()
 
 category_names = ['Backgroud', 'General trash', 'Paper', 'Paper pack', 'Metal', 'Glass', 'Plastic', 'Styrofoam', 'Plastic bag', 'Battery', 'Clothing']
 
-def validation(epoch, model, data_loader, criterion, device):
+def validation(epoch, model, data_loader, criterion, device, wandb):
     print(f'Start validation #{epoch}')
     model.eval()
 
@@ -93,8 +98,11 @@ def validation(epoch, model, data_loader, criterion, device):
             
             # device 할당
             model = model.to(device)
-            
-            outputs = model(images)['out']
+            try:
+                outputs = model(images)['out']
+            except TypeError: # U-Net++ 경우
+                outputs = model(images)
+                
             loss = criterion(outputs, masks)
             total_loss += loss
             cnt += 1
@@ -111,6 +119,7 @@ def validation(epoch, model, data_loader, criterion, device):
         print(f'Validation #{epoch}  Average Loss: {round(avrg_loss.item(), 4)}, Accuracy : {round(acc, 4)}, \
                 mIoU: {round(mIoU, 4)}')
         print(f'IoU by class : {IoU_by_class}')
+        wandb.write_class(IoU_by_class)
         
     return mIoU, avrg_loss
 
@@ -140,19 +149,20 @@ class Trainer:
         increment_name = self.save_dir.split('/')[-1]
         self.wandb = Wandb(**config.wandb, name=increment_name, config=config)
 
-        
+        self.resumed = config.resumed.flag
+        self.resumed_path = config.resumed.path
 
     def trainer_train(self, config):
-        # transform 적용
+        ## transform 적용
         transform_module = getattr(import_module("dataset"), config.augmentation.name)
         train_transform = transform_module(val_flag = False)
         val_transform = transform_module(val_flag = True)
 
-        # dataset 구성
+        ## dataset 구성
         train_dataset = CustomDataLoader(data_dir=self.train_path, mode='train', transform=train_transform)
         val_dataset = CustomDataLoader(data_dir=self.val_path, mode='val', transform=val_transform)
 
-        # dataloader
+        ## dataloader
         train_loader = DataLoader(dataset=train_dataset,
                                   collate_fn=collate_fn,
                                   **config.train_data_loader)
@@ -160,9 +170,17 @@ class Trainer:
                                   collate_fn=collate_fn,
                                   **config.val_data_loader)
 
-        # model
+        ## model
         model_module = getattr(import_module("model"), config.model.name)
-        model = model_module(num_classes=self.num_classes).to(self.device)
+        if config.model.name in ["UNetPlusPlus"]:
+            # for U-Net
+            model = model_module(out_ch=11, supervision=False)
+        else:
+            model = model_module()
+        if self.resumed:
+            model.load_state_dict(torch.load(self.resumed_path, map_location=self.device))
+            print("training is resumed!")
+        model.to(self.device)
 
         # loss
         loss_module = getattr(import_module("model"), criterion_entrypoint(config.loss.name))
@@ -177,5 +195,5 @@ class Trainer:
         sch_module = getattr(import_module("torch.optim.lr_scheduler"), config.lr_scheduler.type)
         scheduler = sch_module(optimizer, **config.lr_scheduler.args)
         
-        train(config.num_epochs, model, train_loader, val_loader, criterion, optimizer, self.save_dir, self.val_every, self.device, scheduler, self.wandb)
+        train(config.num_epochs, model, train_loader, val_loader, criterion, optimizer, self.save_dir, self.val_every, self.device, config.lr_scheduler.type, scheduler, self.wandb)
 
