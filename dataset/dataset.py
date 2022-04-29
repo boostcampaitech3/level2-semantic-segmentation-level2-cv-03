@@ -22,11 +22,12 @@ def get_classname(classID, cats):
 
 class CustomDataLoader(Dataset):
     """COCO format"""
-    def __init__(self, data_dir, mode = 'train', transform = None):
+    def __init__(self, data_dir, mode = 'train', transform = None, preprocessing=None):
         super().__init__()
         self.mode = mode
         self.transform = transform
         self.coco = COCO(data_dir)
+        self.preprocessing = preprocessing
         
     def __getitem__(self, index: int):
         # dataset이 index되어 list처럼 동작
@@ -63,6 +64,13 @@ class CustomDataLoader(Dataset):
                 transformed = self.transform(image=images, mask=masks)
                 images = transformed["image"]
                 masks = transformed["mask"]
+
+            ## smp library에서 data preprocessing 할 때
+            if self.preprocessing:
+                print(type(images))
+                images, masks = images.numpy(), masks.numpy()
+                sample = self.preprocessing(image=images, mask=masks)
+                images, masks = sample['image'], sample['mask']
             return images, masks, image_infos
         
         if self.mode == 'test':
