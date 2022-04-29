@@ -12,6 +12,7 @@ from model import criterion_entrypoint # model 폴더 내 loss.py
 from dataset.transform import *
 from dataset import CustomDataLoader
 from utils import * # wnadb 관련 함수
+import segmentation_models_pytorch as smp
 
 
 def train(num_epochs, model, data_loader, val_loader, criterion, optimizer, saved_dir, val_every, device, scheduler_type, scheduler, wandb):
@@ -123,10 +124,6 @@ def validation(epoch, model, data_loader, criterion, device, wandb):
         
     return mIoU, avrg_loss
 
-# collate_fn needs for batch
-def collate_fn(batch):
-    return tuple(zip(*batch))
-
 class Trainer:
     def __init__(self, config, save_dir, train_path, val_path, val_every):
         self.num_classes = 11
@@ -155,12 +152,23 @@ class Trainer:
     def trainer_train(self, config):
         ## transform 적용
         transform_module = getattr(import_module("dataset"), config.augmentation.name)
-        train_transform = transform_module(val_flag = False)
-        val_transform = transform_module(val_flag = True)
+        train_transform = transform_module(flag = 'train')
+        val_transform = transform_module(flag = 'val')
+
+        ## smp의 경우 preprocess 여부
+        if config.model.name.endswith('smp'):
+            if config.model.preprocess == True:
+                print('Preprocessing is undergoing!')
+                preprocessing_fn = smp.encoders.get_preprocessing_fn(config.model.args.encoder_name, config.model.args.encoder_weights)
+                preprocessing = get_preprocessing(preprocessing_fn)
+            else:
+                preprocessing = None    
+        else:
+            preprocessing = None
 
         ## dataset 구성
-        train_dataset = CustomDataLoader(data_dir=self.train_path, mode='train', transform=train_transform)
-        val_dataset = CustomDataLoader(data_dir=self.val_path, mode='val', transform=val_transform)
+        train_dataset = CustomDataLoader(data_dir=self.train_path, mode='train', transform=train_transform, preprocessing=preprocessing)
+        val_dataset = CustomDataLoader(data_dir=self.val_path, mode='val', transform=val_transform, preprocessing=preprocessing)
 
         ## dataloader
         train_loader = DataLoader(dataset=train_dataset,
@@ -176,7 +184,7 @@ class Trainer:
             # for U-Net
             model = model_module(out_ch=11, supervision=False)
         else:
-            model = model_module()
+            model = model_module(**config.model.args)
         if self.resumed:
             model.load_state_dict(torch.load(self.resumed_path, map_location=self.device))
             print("training is resumed!")

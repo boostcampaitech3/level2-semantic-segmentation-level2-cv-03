@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torchvision
 from torchvision import models
+import segmentation_models_pytorch as smp
 
 class FCN_Resnet_50(nn.Module):
     def __init__(self):
@@ -20,7 +21,10 @@ class Deeplabv3_resnet50(nn.Module):
     def forward(self, images):
         return self.model(images)
 
-## U-Net ++
+## U-Net++ (smp)
+UNetPlusPlus_smp = smp.Unet
+
+## U-Net++ (스페셜 피어세션)
 # 출처 : https://jinglescode.github.io/2019/12/02/biomedical-image-segmentation-u-net-nested/
 class conv_block_nested(nn.Module):
     def __init__(self, in_ch, mid_ch, out_ch):
