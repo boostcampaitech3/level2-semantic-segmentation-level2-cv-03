@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    with open(args.config) as f:
+    with open(args.config, 'r', -1, "utf-8") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
 
     config = DictAsMember(config)
