@@ -34,7 +34,7 @@ def test(model, data_loader, device):
             except TypeError:
                 outs = model(torch.stack(imgs).to(device))
                 
-            ##### CRF ####
+            ###### CRF #####
             outs = F.softmax(outs,dim=1).detach().cpu().numpy()
             pool = mp.Pool(mp.cpu_count())
             images = torch.stack(imgs).detach().cpu().numpy().astype(np.uint8).transpose(0,2,3,1)
