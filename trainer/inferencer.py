@@ -14,6 +14,11 @@ import segmentation_models_pytorch as smp
 import albumentations as A
 from tqdm import tqdm
 
+# pip install pydensecrf
+import pydensecrf.densecrf as dcrf
+import pydensecrf.utils as utils
+import multiprocessing as mp
+
 
 def test(model, data_loader, device):
     size = 256
