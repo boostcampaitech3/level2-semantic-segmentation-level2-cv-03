@@ -33,8 +33,16 @@ def test(model, data_loader, device):
                 outs = model(torch.stack(imgs).to(device))['out']
             except TypeError:
                 outs = model(torch.stack(imgs).to(device))
+                
+            ##### CRF ####
+            outs = F.softmax(outs,dim=1).detach().cpu().numpy()
+            pool = mp.Pool(mp.cpu_count())
+            images = torch.stack(imgs).detach().cpu().numpy().astype(np.uint8).transpose(0,2,3,1)
+            outs = np.array(pool.map(dense_crf_wrapper, zip(images, outs)))
+            oms = np.argmax(outs.squeeze(), axis=1)
+            ################
 
-            oms = torch.argmax(outs.squeeze(), dim=1).detach().cpu().numpy()
+            # oms = torch.argmax(outs.squeeze(), dim=1).detach().cpu().numpy()
             
             # resize (256 x 256)
             temp_mask = []
