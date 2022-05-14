@@ -16,7 +16,10 @@
 
 ## 🌿 Project Summary
   - **Data Augmentation**
-    - 
+    - Horizontal Flip
+    - Rotate90
+    - GridDropOut
+    - RandomResizedCrop
   - **TTA**
     - Inference(Test) 과정에서 Augmentation 을 적용한 뒤 예측의 확률을 평균(또는 다른 방법)을 통해 도출하는 기법
     - Multiscale → 0.5, 0.75, 1.0, 1.25, 1.5의 ratio를 사용.
