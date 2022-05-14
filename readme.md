@@ -1,11 +1,11 @@
 # 🌏 Semantic Segmentation for Recycling Trash
 
-## Main Subject
+## 🎇 Main Subject
 대량 생산, 대량 소비의 시대에서는 필연적으로 “쓰레기 처리”문제가 발생합니다. 분리 수거는 이러한 환경 부담을 줄일 수 있는 대표적인 방법이며, 올바른 방식으로 분리수거를 수행해야 합니다.
 
 해당 프로젝트에서는 사진에서 쓰레기를 segmentation하는 모델을 만들어 분리수거를 진행하고자 하였고 특히 11가지로 나뉘는 쓰레기 종류와 위치를 파악하기 위한 모델을 만드는 것에 집중하였습니다.
 
-## Development Environment
+## 💻 Development Environment
 **개발 언어** : PYTHON (IDE: VSCODE, JUPYTER NOTEBOOK)
 
 **서버**: AI STAGES (GPU: NVIDIA TESLA V100)
@@ -14,8 +14,9 @@
 
 **Library** : mmsegmentation, smp 
 
-## Project Summary
-  - **Data Augmentation:**
+## 🌿 Project Summary
+  - **Data Augmentation**
+    - 
   - **TTA**
     - Inference(Test) 과정에서 Augmentation 을 적용한 뒤 예측의 확률을 평균(또는 다른 방법)을 통해 도출하는 기법
     - Multiscale → 0.5, 0.75, 1.0, 1.25, 1.5의 ratio를 사용.
@@ -30,5 +31,14 @@
     - Semantic Segmentation에서 사용하는 대표적인 성능 측정 metric
     - GT값과 prediction값의 class별 IoU의 평균을 계산
 ### Model
+|Model|Backbone|library|LB Score@public|LB Score@private|
+|:---:|:---:|:---:|---:|---:|
+|KNet + UperNet|Swin-L|mmsegmentation|0.7083|0.7245|
+|DeepLabV3Plus|xception65|Segmentation Models Pytorch(SMP)|0.6249|0.6102|
+|DeepLabV3Plus|EfficientNet-b7|SMP|0.6173|0.5755|
+|Unet|EfficientNet-b7|SMP|0.6463|0.6429|
+|Unet|regnet|SMP|0.6548|0.6265|
+|Deeplab v3|ResNet50|base|0.5454|0.5225|
+|UperNet|ResNet101|base|0.6319|0.5839|
 
-## 
+## [Wrap Up Report](https://sand-bobolink-9c4.notion.site/Wrap-Up-4a59a89080a34b9b91c1ec0cc5ad8d40)
