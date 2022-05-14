@@ -22,13 +22,13 @@
     - RandomResizedCrop
   - **TTA**
     - Inference(Test) 과정에서 Augmentation 을 적용한 뒤 예측의 확률을 평균(또는 다른 방법)을 통해 도출하는 기법
-    - Multiscale → 0.5, 0.75, 1.0, 1.25, 1.5의 ratio를 사용.
+    - Multiscale → 0.5, 0.75, 1.0, 1.25, 1.5의 ratio를 사용
     - Flip → Horizontal & Vertical
   - **Ensemble**
 
 ### Dataset
   - 재활용 쓰레기가 촬영된 **.jpg 형식의 이미지**와 **masking되어 있는 고유 좌표** 및 종류를 명시한 **.json 파일**로 이루어져 있으며 각각 train, val, test로 구분
-  - **범주** : 배경, 일반쓰레기, 종이, 종이팩, 금속, 유리, 플라스틱, 스티로폼, 플라스틱 가방, 배터리, 의류 총 11가지
+  - **범주** : 배경, 일반쓰레기, 종이, 종이팩, 금속, 유리, 플라스틱, 스티로폼, 플라스틱 가방, 배터리, 의류 (총 11가지)
 ### Metrics
   - **mIoU(Mean Intersection over Union)**
     - Semantic Segmentation에서 사용하는 대표적인 성능 측정 metric
