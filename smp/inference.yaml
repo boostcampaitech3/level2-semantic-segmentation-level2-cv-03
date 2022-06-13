@@ -1,0 +1,27 @@
+inference:
+  model:
+    name: UNetPlusPlus_smp # FCN_Resnet_50 # model 폴더 내 model.py의 class명 기준으로 적으시면 됩니다.
+    preprocess: False # smp 사용할 경우 preprocess 적용 가능.
+    args:
+      encoder_name: resnet50 # smp 경우
+      encoder_depth: 5
+      encoder_weights: imagenet
+      in_channels: 3
+      classes: 11
+
+  # 학습한 모델과 동일한 설정을 사용해야 합니다.
+  augmentation:
+    name: BasicTransform
+    # args:
+    #   resize: 512
+
+  # 공식 문서에 있는 설정을 더 추가할 수 있습니다
+  test_data_loader:
+    batch_size: 50
+    shuffle: False
+    drop_last: False
+
+inferencer:
+  model_path: ./saved/U-Net_plusplus_smp_35epoch/best_mIoU.pt
+  test_path: /test.json
+  save_dir: ./submission

@@ -1,0 +1,61 @@
+exp_name: UPer_res101_60ep_DiceCE_Cyclic_griddropout3p1_ratio0.4 # wandb projects 내 실험 name
+
+dataset: base # dataset name
+seed: 21
+
+wandb:
+  project: hyunjin-segmentation # 본인 project명으로 바꿔주시면 됩니다.
+  flag: True
+
+train:
+  num_epochs: 60
+
+  augmentation:
+    name: BasicTransform
+
+  train_data_loader:
+    batch_size: 16
+    shuffle: True
+    num_workers: 4
+  val_data_loader:
+    batch_size: 32
+  
+  model:
+    name: UperNet # FCN_Resnet_50 # model 폴더 내 model.py의 class명 기준으로 적으시면 됩니다.
+  
+  loss: 
+    name: DiceCELoss # model 폴더 내 loss.py의 _criterion_entrypoints 키 기준으로 적으시면 됩니다.
+    args: {}
+
+  optimizer: # torch.optim에 맞게 선언해주시면 됩니다.
+    type: AdamW # torch.optim 내 원하는 optimizer를 선언
+    args:
+      lr: 0.0001 # learninig rate / .1e-3 0.0001
+      weight_decay: 0.0025  # sweep
+
+  lr_scheduler: # torch.optim.lr_scheduler에 맞게 선언해주시면 됩니다.
+    type: CyclicLR # torch.optim.lr_scheduler 내 원하는 scheduler를 선언 / PolynomialLRDecay
+    args: 
+      # CyclicLR
+      base_lr: 0.00005
+      cycle_momentum: false
+      gamma: 0.5
+      max_lr: 0.000001
+      mode : "exp_range"
+      step_size_up: 4
+
+      # T_max: 8
+      # eta_min: 0.00003
+      
+      #StepLR
+      # step_size: 55
+
+      # max_decay_steps: 164
+      # milestones: [20,30,50] # milestones
+      # gamma: 0.5 # gamma
+
+trainer:
+  save_dir: '../saved'
+  train_path: /train.json # data 폴더 기준으로 작성하시면 됩니다.
+  val_path: /val.json
+  val_every: 1

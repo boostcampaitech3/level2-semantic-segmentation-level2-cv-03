@@ -1,0 +1,28 @@
+program: sweep_train.py
+entity: cv-3-bitcoin
+project: jaeook-segmentation
+method: random
+metric:
+  goal: maximize
+  name: val_mIoU
+parameters:
+  learning_rate:
+    max: 0.025
+    min: 0.00005
+    distribution: uniform
+  weight_decay:
+    max: 0.01
+    min: 0.00004
+    distribution: uniform
+  optimizer:
+    values: ['sgd','adam','adamw']
+  # epochs:
+  #   max: 10
+  #   min: 2
+  #   distribution: int_uniform
+  seed:
+    max: 42
+    min: 11
+    distribution: int_uniform
+
+# 공식문서 https://docs.wandb.ai/guides/sweeps/configuration
