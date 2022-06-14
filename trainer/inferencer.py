@@ -13,7 +13,7 @@ from utils import * # wnadb 관련 함수
 import segmentation_models_pytorch as smp
 import albumentations as A
 from tqdm import tqdm
-
+import ttach as tta
 
 def test(model, data_loader, device):
     size = 256
@@ -94,6 +94,22 @@ class Inferencer:
         # print(torch.load(self.model_path, map_location=self.device).keys())
         model.load_state_dict(torch.load(self.model_path, map_location=self.device))
         
+        ## tta transform
+        tta_transforms = tta.Compose(
+            [
+                tta.HorizontalFlip(),
+                tta.VerticalFlip(),
+                # tta.Rotate90([0, 90, 180, 270]),
+                tta.Rotate90([0, 90, 270]),
+                tta.Resize([(256,256),(768,768)], (512,512)),
+                # tta.Scale([1.5, 0.5]),
+            ]
+        )
+
+        if config.augmentation.tta:
+            print('----TTA is applied!!----')
+            model = tta.SegmentationTTAWrapper(model, tta_transforms, merge_mode='max')
+
         model.to(self.device)
         model.eval()
 
@@ -109,7 +125,11 @@ class Inferencer:
                                         ignore_index=True)
 
         # submission.csv로 저장
-        submission.to_csv(os.path.join(self.save_dir, self.model_name), index=False)
+        if config.augmentation.tta:
+            csv_name = 'tta_' + self.model_name
+            submission.to_csv(os.path.join(self.save_dir, csv_name), index=False)
+        else:
+            submission.to_csv(os.path.join(self.save_dir, self.model_name), index=False)
 
 
 
